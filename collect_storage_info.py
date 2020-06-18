@@ -152,7 +152,7 @@ def collect_volumes():
 
                 vol = {"uid": uid,
                        "logical_bytes": vol["total"],
-                       "physical_bytes": vol["total"] / vol["data_reduction"],
+                       "physical_bytes": vol["volumes"] * vol["data_reduction"],
                        "provisioned_bytes": vol["size"],
                        "tags": tags}
 
