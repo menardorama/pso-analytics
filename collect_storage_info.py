@@ -153,6 +153,7 @@ def collect_volumes():
                 vol = {"uid": uid,
                        "logical_bytes": vol["total"],
                        "physical_bytes": vol["volumes"] * vol["data_reduction"],
+                       "data_reduction": vol["data_reduction"],
                        "provisioned_bytes": vol["size"],
                        "tags": tags}
 
@@ -221,15 +222,19 @@ class CustomCollector(object):
                 'Physical byte usage by volumes', labels=['uid'] + labellist)
         g_prov = prometheus_client.core.GaugeMetricFamily('pso_volume_provisioned_bytes',
                 'Bytes provisioned for volumes', labels=['uid'] + labellist)
+        g_dre = prometheus_client.core.GaugeMetricFamily('pso_volume_datareduction_ratio',
+                'Data reduction ratio for volumes', labels=['uid'] + labellist)
 
         for v in vols:
             labelvalues = [v['uid']] + [v['tags'][t] if t in v['tags'] else '<none>' for t in labellist]
             g_used.add_metric(labelvalues, v['logical_bytes'])
             g_phys.add_metric(labelvalues, int(v['physical_bytes']))
             g_prov.add_metric(labelvalues, v['provisioned_bytes'])
+            g_dre.add_metric(labelvalues, v['data_reduction'])
         yield g_used
         yield g_phys
         yield g_prov
+        yield g_dre
 
 
 #========= Main Entry Point ======================
@@ -254,6 +259,7 @@ while True:
                     newrow = {"logical_bytes": v["logical_bytes"],
                               "physical_bytes": v["physical_bytes"],
                               "provisioned_bytes": v["provisioned_bytes"],
+                              "data_reduction": v["data_reduction"],
                               "volume_count": 1}
                     thistab[key] = sum_volume_records(thistab[key], newrow) if key in thistab else copy.copy(newrow)
 
